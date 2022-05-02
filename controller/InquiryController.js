@@ -1,6 +1,7 @@
 const InquirySchema = require('../model/InquirySchema');
 const auth = require("../middleware/auth");
 const jwt = require("jsonwebtoken");
+
 const makeInquiry = async (req, resp) => {
     InquirySchema.find({email: req.body.email}).then(inquiriesList => {
         if (inquiriesList.length > 0) {
@@ -57,7 +58,6 @@ const makeInquiry = async (req, resp) => {
 
     })
 }
-
 const updateInquiry = (req, resp) => {
     const token =
         req.body.token || req.query.token || req.headers["authorization"];
@@ -83,11 +83,10 @@ const updateInquiry = (req, resp) => {
         return resp.status(401).send("Invalid Token");
     }
 }
-
 const listAllInquiries = (req, resp) => {
 
     const token =
-        req.body.token || req.query.token || req.headers["x-access-token"];
+        req.body.token || req.query.token || req.headers["authorization"];
     if (!token) {
         return resp.status(403).send("A token is required for authentication");
     }
@@ -100,9 +99,6 @@ const listAllInquiries = (req, resp) => {
         const page = req.query.page ? Number(req.query.page) : 0;
         const pageSize = req.query.size ? Number(req.query.size) : 0;
         const type = req.query.type ? req.query.type : 'ALL';
-        console.log(searchText)
-        console.log(page)
-        console.log(pageSize)
         if (type === 'ALL') {
             InquirySchema.find({
                 $or: [
@@ -113,12 +109,29 @@ const listAllInquiries = (req, resp) => {
                     {inquiry_message: {$regex: new RegExp(searchText, "i")},}
                 ]
             }).limit(pageSize)
-                .skip(pageSize * page).then(listData => {
-                resp.status(200).json({data: listData});
-            }).catch(error => {
-                resp.status(500).json({message: 'Something went wrong! try again shortly..'});
-
-            })
+                .skip(pageSize * page).exec((err, data) => {
+                if (err) {
+                    return resp.json(err);
+                }
+                InquirySchema.countDocuments({
+                    $or: [
+                        {email: {$regex: new RegExp(searchText, "i")},},
+                        {country: {$regex: new RegExp(searchText, "i")},},
+                        {program_type: {$regex: new RegExp(searchText, "i")},},
+                        {name: {$regex: new RegExp(searchText, "i")},},
+                        {inquiry_message: {$regex: new RegExp(searchText, "i")},}
+                    ]
+                }).exec((count_error, count) => {
+                    if (err) {
+                        return resp.json(count_error);
+                    }
+                    return resp.json({
+                        total: count,
+                        page: page,
+                        data: data
+                    });
+                });
+            });
         } else {
             InquirySchema.find({
                 $or: [
@@ -132,15 +145,33 @@ const listAllInquiries = (req, resp) => {
                     {state_type: type},
                 ]
             }).limit(pageSize)
-                .skip(pageSize * page).then(listData => {
-                resp.status(200).json({data: listData});
-            }).catch(error => {
-                console.log(error)
-                resp.status(500).json({message: 'Something went wrong! try again shortly..'});
-
-            })
+                .skip(pageSize * page).exec((err, data) => {
+                if (err) {
+                    return resp.json(err);
+                }
+                InquirySchema.countDocuments({
+                    $or: [
+                        {email: {$regex: new RegExp(searchText, "i")}},
+                        {country: {$regex: new RegExp(searchText, "i")}},
+                        {program_type: {$regex: new RegExp(searchText, "i")}},
+                        {name: {$regex: new RegExp(searchText, "i")}},
+                        {inquiry_message: {$regex: new RegExp(searchText, "i")}}
+                    ],
+                    $and: [
+                        {state_type: type},
+                    ]
+                }).exec((count_error, count) => {
+                    if (err) {
+                        return resp.json(count_error);
+                    }
+                    return resp.json({
+                        total: count,
+                        page: page,
+                        data: data
+                    });
+                });
+            });
         }
-
         //======================================
 
 
