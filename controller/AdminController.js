@@ -34,7 +34,7 @@ const login = (req, resp) => {
                     const token = jwt.sign({
                         email: req.body.email
                     }, process.env.SECRET_KEY);
-                    resp.status(200).json({result: token});
+                    resp.status(200).json({result: token,state:true});
                 } else {
                     resp.status(401).json({message: 'UnAuthorized Attempt!'});
                 }
