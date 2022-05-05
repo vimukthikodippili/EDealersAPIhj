@@ -22,7 +22,7 @@ const makeInquiry = async (req, resp) => {
                 inquiry_message: req.body.inquiry_message,
                 available_state: req.body.available_state,
                 other_data: req.body.other_data,
-                state_type: req.body.state_type,
+                state_type: req.body.state_type
             })
             inquiry.save().then(saveData => {
                 resp.status(201).json({message: 'Thank You! we will contact you immediately..'});

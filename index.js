@@ -7,6 +7,7 @@ const cors = require('cors')
 
 const adminRoute = require('./route/AdminRoute');
 const inquiryRoute = require('./route/InquiryRoute');
+const subscribeRoute = require('./route/SubscribeRoute');
 
 /*--------------------------*/
 const serverPort = process.env.SERVER_PORT;
@@ -26,4 +27,5 @@ mongoose.connect('mongodb://localhost:27017/e_dealers', () => {
 /*------------------------------*/
 app.use('/api/v1/admin', adminRoute);
 app.use('/api/v1/inquiry', inquiryRoute);
+app.use('/api/v1/subscribers', subscribeRoute);
 /*------------------------------*/
