@@ -13,6 +13,8 @@ const register = async (req, resp) => {
                     email: req.body.email,
                     password: hash,
                     country: req.body.country,
+                    contact: req.body.contact,
+                    avatar: req.body.avatar,
                     departments: req.body.departments,
                     state_type: req.body.state_type
                 });
@@ -349,6 +351,36 @@ const resetPassword = (req, resp) => {
     }
 
 }
+const getUserName = (req, resp) => {
+    const token =
+        req.body.token || req.query.token || req.headers["authorization"];
+    if (!token) {
+        return resp.status(403).send("A token is required for authentication");
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET_USER_KEY);
+
+        if (decoded) {
+            UserSchema.findOne({email: decoded.email}).then(isExists => {
+
+                if (isExists !== null) {
+                    return resp.status(200).send({state:true,name:isExists.name});
+                }else{
+                    return resp.status(404).send("User Not Found");
+                }
+
+            }).catch(isExistsError => {
+                return resp.status(500).json({error: isExistsError, message: 'Internal Server Error!'});
+            });
+        } else {
+            return resp.status(401).send("Invalid Token");
+        }
+    } catch (err) {
+        return resp.status(401).send("Invalid Token");
+    }
+
+}
 module.exports = {
-    register, forgetPassword, resetPassword, userLogin
+    register, forgetPassword, resetPassword, userLogin, getUserName
 }

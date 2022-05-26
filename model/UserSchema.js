@@ -4,6 +4,8 @@ const UserSchema = new mongoose.Schema({
     email: {type: String, required: true},
     password: {type: String, required: true},
     country: {type: String},
+    contact: {type: String},
+    avatar: {type: String},
     departments: Array,
     state_type: {type: Boolean}
 });
